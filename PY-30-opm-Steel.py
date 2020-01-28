@@ -30,7 +30,7 @@ from abaqusConstants import *
 from caeModules import *
 from driverUtils import executeOnCaeStartup
 executeOnCaeStartup()
-openMdb(pathName='F:/Dr_sun/ALL_0-15-30-3segmented tubes.cae')
+openMdb(pathName='F:/sun/ALL_0-15-30-3segmented tubes.cae')
 #: The model database "'F:/abass_milani/30_degeree/TMT_STEEL_30_d.cae'" has been opened.
 p = mdb.models['three_TMT_30'].parts['Atube']
 a = mdb.models['three_TMT_30'].rootAssembly
@@ -40,7 +40,7 @@ a = mdb.models['three_TMT_30'].rootAssembly
 Mdb()
 #: A new model database has been created.
 #: The model "Model-1" has been created.
-openMdb(pathName='F:/Dr_sun/ALL_0-15-30-3segmented tubes.cae')
+openMdb(pathName='F:/sun/ALL_0-15-30-3segmented tubes.cae')
 #: The model database "F:\test_TMT\three_segments_TMT_STEEL_30_d_6-16.cae" has been opened.
 p = mdb.models['three_TMT_30'].parts['Atube']
 a = mdb.models['three_TMT_30'].rootAssembly
