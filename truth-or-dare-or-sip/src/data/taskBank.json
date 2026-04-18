@@ -1,0 +1,20 @@
+[
+  { "id": "bulk_1", "content": "Am I your type?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-2", "persona": "flirty" } },
+  { "id": "bulk_2", "content": "Do you find it hotter when someone is shy or confident?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-1", "persona": "introvert" } },
+  { "id": "bulk_3", "content": "Have you ever fantasized about someone you know you shouldn't?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-2", "persona": "chaotic" } },
+  { "id": "bulk_4", "content": "69 - no way, or yes please?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-3", "persona": "chaotic" } },
+  { "id": "bulk_5", "content": "Have you ever had sex blindfolded?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-3", "persona": "romantic" } },
+  { "id": "bulk_6", "content": "What was the last thing you photographed with your phone? show it", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:none", "level": "Level-1", "persona": "nosy" } },
+  { "id": "bulk_7", "content": "Tell us your best dirty joke?", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:none", "level": "Level-2", "persona": "chaotic" } },
+  { "id": "bulk_8", "content": "Show us, Who was the last person you called?", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:none", "level": "Level-2", "persona": "nosy" } },
+  { "id": "bulk_9", "content": "Perform ballet for one minute.", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:none", "level": "Level-1", "persona": "flirty" } },
+  { "id": "bulk_10", "content": "Kiss the person to your left.", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:physical_touch", "level": "Level-2", "persona": "romantic" } },
+  { "id": "bulk_11", "content": "Write a love song about an object in the room.", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:none", "level": "Level-1", "persona": "introvert" } },
+  { "id": "bulk_12", "content": "Show everyone your favorite picture of your crush.", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:none", "level": "Level-2", "persona": "romantic" } },
+  { "id": "bulk_13", "content": "Eat a teaspoon of mustard or sth worse than Mustard.", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:food_drink", "level": "Level-2", "persona": "chaotic" } },
+  { "id": "bulk_14", "content": "Have you ever been naked in public?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-3", "persona": "chaotic" } },
+  { "id": "bulk_15", "content": "Do you have any secret sexy fantasies?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-3", "persona": "introvert" } },
+  { "id": "bulk_16", "content": "Google your favorite porn star, and show us.", "verified": true, "tags": { "type": "Type:dare", "barrier": "Barrier:none", "level": "Level-3", "persona": "nosy" } },
+  { "id": "bulk_17", "content": "Do you go weak at the knees for a sexy voice?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-1", "persona": "flirty" } },
+  { "id": "bulk_18", "content": "Have you ever been in love?", "verified": true, "tags": { "type": "Type:truth", "barrier": "Barrier:none", "level": "Level-1", "persona": "romantic" } }
+]
