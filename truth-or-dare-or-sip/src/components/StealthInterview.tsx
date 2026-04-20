@@ -4,27 +4,24 @@ import { v4 as uuidv4 } from 'uuid';
 import { useGameStore } from '../store/useGameStore';
 import type { Player } from '../types';
 import taskBankData from '../data/taskBank.json';
-
-const FUNNY_NAMES = [
-  "Captain Chaos", "The Instigator", "Whiskey Tango", "Sir Sips-a-Lot",
-  "The Goblin", "Count Drinkula", "Tipsy Tornado", "The Mischief Maker",
-  "Sneaky Pete", "Madame Merlot", "Duke of Dare", "Truth Teller"
-];
-
-const PERSONA_TAGS = ['flirty', 'introvert', 'nosy', 'chaotic', 'romantic'];
+import { PERSONA_GROUPS, QUIZ_QUESTIONS } from '../data/stealthQuiz';
 
 export const StealthInterview: React.FC = () => {
   const { settings, addPlayer } = useGameStore();
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [phase, setLocalPhase] = useState<'PASS_IPAD' | 'QUIZ'>('PASS_IPAD');
   const [timeLeft, setTimeLeft] = useState(45);
-  const [answers, setAnswers] = useState<string[]>([]);
 
-  // Simple quiz questions
-  const questions = [
-    "What's your vibe tonight?",
-    "Are you more likely to instigate or spectate?"
-  ];
+  // Quiz specific state
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [randomizedQuestions, setRandomizedQuestions] = useState([...QUIZ_QUESTIONS]);
+  const [scores, setScores] = useState<Record<string, number>>({
+    group1_goofball: 0,
+    group2_antihero: 0,
+    group3_nervous: 0,
+    group4_feral: 0,
+    group5_softie: 0
+  });
 
   const totalPlayers = settings.numPlayers;
 
@@ -39,20 +36,61 @@ export const StealthInterview: React.FC = () => {
   }, [phase, timeLeft]);
 
   const handleStartQuiz = () => {
+    // Randomize questions for the new player
+    setRandomizedQuestions([...QUIZ_QUESTIONS].sort(() => Math.random() - 0.5));
+    setCurrentQuestionIndex(0);
+    setScores({
+      group1_goofball: 0,
+      group2_antihero: 0,
+      group3_nervous: 0,
+      group4_feral: 0,
+      group5_softie: 0
+    });
     setLocalPhase('QUIZ');
     setTimeLeft(45);
-    setAnswers(Array(questions.length).fill(''));
   };
 
-  const handleCompleteQuiz = () => {
-    // Generate random name and tag
-    const funnyName = FUNNY_NAMES[Math.floor(Math.random() * FUNNY_NAMES.length)] + ` #${currentPlayerIndex + 1}`;
-    const tag = PERSONA_TAGS[Math.floor(Math.random() * PERSONA_TAGS.length)];
+  const handleAnswer = (awardedGroups: string[]) => {
+    // Update scores
+    const newScores = { ...scores };
+    awardedGroups.forEach(g => {
+      newScores[g] += 1;
+    });
+    setScores(newScores);
+
+    // Next question or complete
+    if (currentQuestionIndex + 1 < randomizedQuestions.length) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      handleCompleteQuiz(newScores);
+    }
+  };
+
+  const handleCompleteQuiz = (finalScores = scores) => {
+    // Find the winning group
+    let maxScore = -1;
+    let winningGroupId = "group1_goofball"; // fallback
+
+    Object.entries(finalScores).forEach(([groupId, score]) => {
+      if (score > maxScore) {
+        maxScore = score;
+        winningGroupId = groupId;
+      }
+    });
+
+    const winningGroup = PERSONA_GROUPS.find(g => g.id === winningGroupId)!;
+
+    // Pick random nickname from the group
+    const funnyName = winningGroup.nicknames[Math.floor(Math.random() * winningGroup.nicknames.length)];
+
+    // Assign tags (prepend 'p:' to match task bank persona format if needed, but the user prompt has them as regular strings in the tags array, we will just use the tags directly for matching later)
+    // We will append 'p:' to them so they match the GameLoop logic which checks for `p:${cardPersona}`
+    const tags = winningGroup.tags.map(t => `p:${t}`);
 
     const newPlayer: Player = {
       id: uuidv4(),
       funnyName,
-      tags: [`p:${tag}`],
+      tags,
       sipsTaken: 0
     };
 
@@ -69,8 +107,10 @@ export const StealthInterview: React.FC = () => {
     }
   };
 
+  const currentQ = randomizedQuestions[currentQuestionIndex];
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 max-w-lg mx-auto">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 max-w-xl mx-auto">
       <AnimatePresence mode="wait">
         {phase === 'PASS_IPAD' ? (
           <motion.div
@@ -99,37 +139,30 @@ export const StealthInterview: React.FC = () => {
             exit={{ opacity: 0, scale: 0.9 }}
             className="w-full bg-gray-800 p-8 rounded-2xl shadow-xl flex flex-col items-center"
           >
-            <div className={`text-6xl font-black mb-8 ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+            <div className={`text-6xl font-black mb-6 ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
               {timeLeft}
             </div>
 
             <div className="w-full space-y-6">
-              {questions.map((q, i) => (
-                <div key={i} className="flex flex-col">
-                  <label className="text-gray-300 text-lg mb-2">{q}</label>
-                  <input
-                    type="text"
-                    value={answers[i]}
-                    onChange={(e) => {
-                      const newAnswers = [...answers];
-                      newAnswers[i] = e.target.value;
-                      setAnswers(newAnswers);
-                    }}
-                    className="bg-gray-700 p-3 rounded text-white border border-gray-600 focus:border-red-500 focus:outline-none"
-                    placeholder="Type your answer..."
-                  />
-                </div>
-              ))}
-            </div>
+              <div className="text-center mb-6">
+                <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{currentQ.title} ({currentQuestionIndex + 1}/8)</span>
+                <h3 className="text-2xl font-bold text-white mt-2">{currentQ.text}</h3>
+              </div>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleCompleteQuiz}
-              className="w-full py-4 mt-8 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg"
-            >
-              Submit & Complete
-            </motion.button>
+              <div className="flex flex-col gap-3">
+                {currentQ.options.map((opt, i) => (
+                  <motion.button
+                    key={i}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleAnswer(opt.groups)}
+                    className="w-full py-4 px-6 bg-gray-700 hover:bg-red-600 text-white text-left font-semibold rounded-xl shadow transition-colors"
+                  >
+                    {opt.text}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
