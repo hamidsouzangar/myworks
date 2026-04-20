@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useGameStore } from '../store/useGameStore';
 import type { Player } from '../types';
 import taskBankData from '../data/taskBank.json';
+import { soundEngine } from '../utils/SoundEngine';
 import { CPM_ARCHETYPES, CPM_QUESTIONS } from '../data/cpmDatabase';
 
 export const StealthInterview: React.FC = () => {
@@ -169,6 +170,8 @@ export const StealthInterview: React.FC = () => {
       setLocalPhase('PASS_IPAD');
     } else {
       // All players interviewed, Initialize State (Phase 1)
+      // Unlock AudioContext here (this is inside a direct user click event)
+      soundEngine.unlock();
       const { initGame } = useGameStore.getState();
       initGame(taskBankData as any);
     }

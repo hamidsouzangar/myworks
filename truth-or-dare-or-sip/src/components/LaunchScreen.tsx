@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 
-export const LaunchScreen: React.FC = () => {
+export const LaunchScreen: React.FC<{ onOpenDuelHub?: () => void }> = ({ onOpenDuelHub }) => {
   const { phase, setPhase, globalSipsRemaining, resetGame } = useGameStore();
   const [checking, setChecking] = useState(true);
 
@@ -73,6 +73,20 @@ export const LaunchScreen: React.FC = () => {
         >
           {hasSave ? 'Start New Game' : 'New Game'}
         </motion.button>
+
+        {onOpenDuelHub && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onOpenDuelHub}
+            className="w-full py-4 px-6 mt-4 bg-purple-900 hover:bg-purple-700 text-purple-200 border-2 border-purple-500 font-bold rounded-xl shadow-lg transition-colors uppercase tracking-widest"
+          >
+            Test Duel Mini-Games
+          </motion.button>
+        )}
       </div>
     </div>
   );

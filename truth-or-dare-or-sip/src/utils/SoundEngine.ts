@@ -8,6 +8,22 @@ class SoundEngine {
     return this.audioCtx;
   }
 
+  // Must be called inside a direct user interaction (e.g. onClick) to unlock AudioContext on iOS Safari
+  public unlock() {
+    const ctx = this.getContext();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    // Play a silent tone to immediately bind the context to the interaction
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.001);
+  }
+
   private playTone(frequency: number, type: OscillatorType, duration: number, volume: number = 0.5) {
     const ctx = this.getContext();
     const osc = ctx.createOscillator();

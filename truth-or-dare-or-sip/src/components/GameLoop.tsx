@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import type { Task } from '../types';
 import { BOTTLES } from './Bottles';
+import { soundEngine } from '../utils/SoundEngine';
 
 export const GameLoop: React.FC = () => {
   const {
@@ -12,7 +13,7 @@ export const GameLoop: React.FC = () => {
     setPhase
   } = useGameStore();
 
-  const [localPhase, setLocalPhase] = useState<'COUNTDOWN' | 'SPINNING' | 'DECISION' | 'ACTION' | 'RESOLUTION'>('COUNTDOWN');
+  const [localPhase, setLocalPhase] = useState<'READY' | 'COUNTDOWN' | 'SPINNING' | 'DECISION' | 'ACTION' | 'RESOLUTION'>('READY');
   const [countdown, setCountdown] = useState(5);
   const [spinRotation, setSpinRotation] = useState(0);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -20,16 +21,25 @@ export const GameLoop: React.FC = () => {
   const [BottleComponent, setBottleComponent] = useState(() => BOTTLES[0]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
+  const startCountdown = () => {
+    // Unlock audio context on first user interaction for iOS Safari
+    soundEngine.unlock();
+    setLocalPhase('COUNTDOWN');
+  };
+
   // Audio context mockup for running sound
   useEffect(() => {
     if (localPhase === 'COUNTDOWN') {
+      soundEngine.playCountdownBeep();
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
+            soundEngine.playStartBuzz();
             setLocalPhase('SPINNING');
             return 0;
           }
+          soundEngine.playCountdownBeep();
           return prev - 1;
         });
       }, 1000);
@@ -157,7 +167,8 @@ export const GameLoop: React.FC = () => {
     // Reset Turn to next player spin
     setShowVetoWarning(false);
     setActiveTask(null);
-    setLocalPhase('SPINNING');
+    setLocalPhase('READY');
+    setCountdown(5);
   };
 
   const handleExitGame = () => {
@@ -209,6 +220,23 @@ export const GameLoop: React.FC = () => {
       )}
 
       <AnimatePresence mode="wait">
+        {localPhase === 'READY' && (
+          <motion.div
+            key="ready"
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.5, opacity: 0 }}
+            className="flex flex-col items-center justify-center w-full h-full absolute inset-0 bg-black bg-opacity-80 z-20"
+          >
+            <button
+              onClick={startCountdown}
+              className="px-12 py-6 bg-red-600 hover:bg-red-500 text-white font-black text-5xl rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.5)] transform transition-transform hover:scale-105 active:scale-95"
+            >
+              START TURN
+            </button>
+          </motion.div>
+        )}
+
         {localPhase === 'COUNTDOWN' && (
           <motion.div
             key="countdown"

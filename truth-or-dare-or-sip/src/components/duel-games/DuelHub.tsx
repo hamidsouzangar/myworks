@@ -15,23 +15,15 @@ type Screen = 'HUB' | 'SOUND_TESTER' | 'GAME_STARING' | 'GAME_WHICH_HAND' | 'GAM
 
 export const DuelHub: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [currentScreen, setCurrentScreen] = useState<Screen>('HUB');
-  const players = useGameStore((state) => state.players);
+  const storePlayers = useGameStore((state) => state.players);
 
-  // We only show the games if we have players, otherwise we show a warning to go back.
-  if (players.length < 2) {
-    return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
-        <h1 className="text-3xl font-bold text-red-500 mb-4">Not Enough Players!</h1>
-        <p className="mb-8">Please start a normal game first to add players to the pool.</p>
-        <button
-          onClick={onExit}
-          className="px-6 py-3 bg-white text-black font-bold border-4 border-white hover:bg-black hover:text-white transition-colors"
-        >
-          Back to Main
-        </button>
-      </div>
-    );
-  }
+  // If we launch Duel Hub before a game has started, we mock some players so we can test.
+  const players = storePlayers.length >= 2 ? storePlayers : [
+    { id: 'mock1', funnyName: 'The Goblin', tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0 },
+    { id: 'mock2', funnyName: 'Professor Chaos', tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0 },
+    { id: 'mock3', funnyName: 'Captain Oblivious', tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0 },
+    { id: 'mock4', funnyName: 'Sneaky Snake', tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0 }
+  ];
 
   if (currentScreen === 'SOUND_TESTER') {
     return (
@@ -46,6 +38,14 @@ export const DuelHub: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       </div>
     );
   }
+
+  // Note: we pass players as a prop or set it in the store temporarily if needed, but since we mock them, let's just make the mini-games use the store, OR we can override the store for testing.
+  // It's cleaner to override the store players so the mini-games components (which pull from the store) see them.
+  React.useEffect(() => {
+    if (storePlayers.length < 2) {
+      useGameStore.setState({ players });
+    }
+  }, [storePlayers, players]);
 
   if (currentScreen === 'GAME_STARING') {
     return <StaringContest onExit={() => setCurrentScreen('HUB')} />;
