@@ -6,6 +6,9 @@ export interface Player {
   funnyName: string;
   tags: string[]; // e.g., 'p:instigator'
   sipsTaken: number;
+  truthsDone: number;
+  daresDone: number;
+  strictSips: number;
 }
 
 export interface GameSettings {
