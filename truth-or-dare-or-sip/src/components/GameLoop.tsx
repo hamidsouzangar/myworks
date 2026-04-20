@@ -15,6 +15,7 @@ export const GameLoop: React.FC = () => {
   const [countdown, setCountdown] = useState(5);
   const [spinRotation, setSpinRotation] = useState(0);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [showVetoWarning, setShowVetoWarning] = useState(false);
 
   // Audio context mockup for running sound
   useEffect(() => {
@@ -98,32 +99,42 @@ export const GameLoop: React.FC = () => {
 
     if (!activePlayerId) return;
 
+    if (action === 'VETO' && !showVetoWarning) {
+      setShowVetoWarning(true);
+      return;
+    }
+
     let sipPenalty = 0;
 
     // Resolution Selection logic
     if (action === 'SIP') {
       sipPenalty = unholyUnion ? 2 : 1;
     } else if (action === 'VETO') {
-      sipPenalty = unholyUnion ? 2 : 1;
-      // Veto logic could be harsher, but sticking to standard sips based on prompt
+      sipPenalty = players.length; // Global sip penalty for all players
     } else if (action === 'DONE') {
       // no sip penalty
     }
 
     if (sipPenalty > 0) {
       decrementSips(sipPenalty);
-      const activePlayer = players.find(p => p.id === activePlayerId);
-      if (activePlayer) {
-         updatePlayer(activePlayerId, { sipsTaken: activePlayer.sipsTaken + sipPenalty });
+
+      // Update individual player sips
+      if (action === 'VETO') {
+        players.forEach(p => {
+          updatePlayer(p.id, { sipsTaken: p.sipsTaken + 1 });
+        });
+      } else {
+        const activePlayer = players.find(p => p.id === activePlayerId);
+        if (activePlayer) {
+           updatePlayer(activePlayerId, { sipsTaken: activePlayer.sipsTaken + sipPenalty });
+        }
       }
     }
 
     // Phase: Aftermath
-    // Decrement turn counters, handle Force Sip etc would go here in a fully expanded version.
-
-    // Auto-save happens automatically via zustand persist middleware.
 
     // Reset Turn to next player spin
+    setShowVetoWarning(false);
     setActiveTask(null);
     setLocalPhase('SPINNING');
   };
@@ -231,11 +242,26 @@ export const GameLoop: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 w-full">
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('DONE')} className="py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg">DONE</motion.button>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('SIP')} className="py-4 bg-orange-500 text-white font-bold rounded-xl shadow-lg">SIP</motion.button>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('VETO')} className="py-4 bg-gray-600 text-white font-bold rounded-xl shadow-lg">VETO</motion.button>
-            </div>
+            {showVetoWarning ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full bg-red-900 p-6 rounded-2xl border border-red-500 text-center"
+              >
+                <h3 className="text-xl font-bold mb-2">Are you sure?</h3>
+                <p className="text-gray-300 mb-6">All of the players must sip.</p>
+                <div className="flex gap-4 w-full">
+                  <button onClick={() => setShowVetoWarning(false)} className="flex-1 py-3 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded-xl">Continue the game</button>
+                  <button onClick={() => resolveTurn('VETO')} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl">Yes, we are sure</button>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="grid grid-cols-3 gap-4 w-full">
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('DONE')} className="py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg">DONE</motion.button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('SIP')} className="py-4 bg-orange-500 text-white font-bold rounded-xl shadow-lg">SIP</motion.button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('VETO')} className="py-4 bg-gray-600 text-white font-bold rounded-xl shadow-lg">VETO</motion.button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
