@@ -1,3 +1,4 @@
+import { PlayerAvatar } from './PlayerAvatar';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
@@ -20,11 +21,16 @@ export const GameLoop: React.FC = () => {
   const [showVetoWarning, setShowVetoWarning] = useState(false);
   const [BottleComponent, setBottleComponent] = useState(() => BOTTLES[0]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [isFirstRound, setIsFirstRound] = useState(true);
 
-  const startCountdown = () => {
-    // Unlock audio context on first user interaction for iOS Safari
+  const startTurn = () => {
     soundEngine.unlock();
-    setLocalPhase('COUNTDOWN');
+    if (isFirstRound) {
+      setLocalPhase('COUNTDOWN');
+      setIsFirstRound(false);
+    } else {
+      setLocalPhase('SPINNING');
+    }
   };
 
   // Audio context mockup for running sound
@@ -229,10 +235,10 @@ export const GameLoop: React.FC = () => {
             className="flex flex-col items-center justify-center w-full h-full absolute inset-0 bg-black bg-opacity-80 z-20"
           >
             <button
-              onClick={startCountdown}
-              className="px-12 py-6 bg-red-600 hover:bg-red-500 text-white font-black text-5xl rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.5)] transform transition-transform hover:scale-105 active:scale-95"
+              onClick={startTurn}
+              className="px-12 py-6 bg-red-600 hover:bg-red-500 text-white font-black text-5xl rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.5)] transform transition-transform hover:scale-105 active:scale-95 uppercase"
             >
-              START TURN
+              {isFirstRound ? 'START GAME' : 'NEXT TURN'}
             </button>
           </motion.div>
         )}
@@ -286,6 +292,9 @@ export const GameLoop: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="flex flex-col items-center w-full text-center"
           >
+            {getActivePlayer() && (
+              <PlayerAvatar seed={getActivePlayer()!.funnyName} size={80} className="mb-4" />
+            )}
             <h2 className="text-4xl font-black text-orange-400 mb-2">The Goblin is</h2>
             <h3 className="text-5xl font-black text-white mb-2">{getActivePlayer()?.funnyName}</h3>
 

@@ -1,3 +1,4 @@
+import { PlayerAvatar } from '../PlayerAvatar';
 import React, { useState, useEffect } from "react";
 import { useGameStore } from '../../store/useGameStore';
 import { soundEngine } from '../../utils/SoundEngine';
@@ -99,10 +100,12 @@ export const StaringContest: React.FC<{ onExit: () => void }> = ({ onExit }) => 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans">
       <div className="flex-1 flex border-b-8 border-gray-800">
-        <div className="flex-1 flex items-center justify-center border-r-4 border-gray-800 p-8">
+        <div className="flex-1 flex flex-col items-center justify-center border-r-4 border-gray-800 p-8">
+          {player1 && <PlayerAvatar seed={player1.funnyName} size={96} className="mb-6" />}
           <h2 className="text-6xl font-black uppercase text-center break-words">{player1?.funnyName}</h2>
         </div>
-        <div className="flex-1 flex items-center justify-center border-l-4 border-gray-800 p-8">
+        <div className="flex-1 flex flex-col items-center justify-center border-l-4 border-gray-800 p-8">
+          {player2 && <PlayerAvatar seed={player2.funnyName} size={96} className="mb-6" />}
           <h2 className="text-6xl font-black uppercase text-center break-words">{player2?.funnyName}</h2>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { PlayerAvatar } from '../PlayerAvatar';
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { soundEngine } from '../../utils/SoundEngine';
@@ -121,12 +122,15 @@ export const WhichHand: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     <div className="min-h-screen bg-black text-white flex flex-col font-sans">
       {/* Header */}
       <div className="p-6 border-b-4 border-gray-800 flex justify-between items-center">
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold uppercase">{player1?.funnyName}</h2>
-          <div className="flex gap-2 mt-2">
-            {[1, 2].map(i => (
-              <div key={i} className={`w-8 h-8 border-4 ${p1Wins >= i ? 'bg-teal-500 border-teal-500' : 'border-gray-600'} rounded-full`}></div>
-            ))}
+        <div className="flex-1 flex items-center gap-4">
+          {player1 && <PlayerAvatar seed={player1.funnyName} size={48} />}
+          <div>
+            <h2 className="text-2xl font-bold uppercase">{player1?.funnyName}</h2>
+            <div className="flex gap-2 mt-2">
+              {[1, 2].map(i => (
+                <div key={i} className={`w-8 h-8 border-4 ${p1Wins >= i ? 'bg-teal-500 border-teal-500' : 'border-gray-600'} rounded-full`}></div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -135,13 +139,16 @@ export const WhichHand: React.FC<{ onExit: () => void }> = ({ onExit }) => {
           <button onClick={resetGame} className="mt-2 text-sm text-gray-500 hover:text-white uppercase font-bold">Abort Match</button>
         </div>
 
-        <div className="flex-1 flex flex-col items-end">
-          <h2 className="text-2xl font-bold uppercase">{player2?.funnyName}</h2>
-          <div className="flex gap-2 mt-2 justify-end">
-             {[1, 2].map(i => (
-              <div key={i} className={`w-8 h-8 border-4 ${p2Wins >= i ? 'bg-teal-500 border-teal-500' : 'border-gray-600'} rounded-full`}></div>
-            ))}
+        <div className="flex-1 flex items-center justify-end gap-4">
+          <div className="flex flex-col items-end">
+            <h2 className="text-2xl font-bold uppercase">{player2?.funnyName}</h2>
+            <div className="flex gap-2 mt-2 justify-end">
+               {[1, 2].map(i => (
+                <div key={i} className={`w-8 h-8 border-4 ${p2Wins >= i ? 'bg-teal-500 border-teal-500' : 'border-gray-600'} rounded-full`}></div>
+              ))}
+            </div>
           </div>
+          {player2 && <PlayerAvatar seed={player2.funnyName} size={48} />}
         </div>
       </div>
 

@@ -16,7 +16,8 @@ export default defineConfig({
         description: 'An offline social game for friends.',
         theme_color: '#111827',
         background_color: '#111827',
-        display: 'standalone',
+        display: 'fullscreen',
+        orientation: 'portrait',
         icons: [
           {
             src: 'pwa-192x192.png',

@@ -1,3 +1,4 @@
+import { PlayerAvatar } from '../PlayerAvatar';
 import React, { useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { soundEngine } from '../../utils/SoundEngine';
@@ -120,6 +121,7 @@ export const RPSWar: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       <div className="flex flex-1">
         {/* Player 1 Side */}
         <div className="flex-1 flex flex-col items-center justify-center border-r-4 border-gray-800 p-8">
+          {player1 && <PlayerAvatar seed={player1.funnyName} size={96} className="mb-4" />}
           <h2 className="text-4xl font-black uppercase text-center mb-8">{player1?.funnyName}</h2>
           <div className="flex gap-4">
             <div className={`w-16 h-16 border-4 ${p1Wins >= 1 ? 'bg-yellow-500 border-yellow-500' : 'border-gray-600'} rounded-full`}></div>
@@ -151,6 +153,7 @@ export const RPSWar: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
         {/* Player 2 Side */}
         <div className="flex-1 flex flex-col items-center justify-center border-l-4 border-gray-800 p-8">
+          {player2 && <PlayerAvatar seed={player2.funnyName} size={96} className="mb-4" />}
           <h2 className="text-4xl font-black uppercase text-center mb-8">{player2?.funnyName}</h2>
           <div className="flex gap-4">
             <div className={`w-16 h-16 border-4 ${p2Wins >= 1 ? 'bg-yellow-500 border-yellow-500' : 'border-gray-600'} rounded-full`}></div>

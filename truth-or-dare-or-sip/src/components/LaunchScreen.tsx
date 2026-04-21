@@ -82,7 +82,7 @@ export const LaunchScreen: React.FC<{ onOpenDuelHub?: () => void }> = ({ onOpenD
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onOpenDuelHub}
-            className="w-full py-4 px-6 mt-4 bg-purple-900 hover:bg-purple-700 text-purple-200 border-2 border-purple-500 font-bold rounded-xl shadow-lg transition-colors uppercase tracking-widest"
+            className="w-full py-6 px-6 mt-8 bg-purple-900 hover:bg-purple-700 text-white border-4 border-purple-500 font-black rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-colors uppercase tracking-widest text-xl"
           >
             Test Duel Mini-Games
           </motion.button>

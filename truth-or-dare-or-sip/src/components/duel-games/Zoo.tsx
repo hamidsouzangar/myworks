@@ -1,3 +1,4 @@
+import { PlayerAvatar } from '../PlayerAvatar';
 import React, { useState } from 'react';
 import { useGameStore } from '../../store/useGameStore';
 import { soundEngine } from '../../utils/SoundEngine';
@@ -100,10 +101,12 @@ export const Zoo: React.FC<{ onExit: () => void }> = ({ onExit }) => {
           </div>
 
           <div className="w-full flex gap-4 px-8 mt-12">
-            <button onClick={() => handleWin(player1?.funnyName || 'Player 1')} className="flex-1 py-8 border-4 border-green-500 text-green-500 font-black text-3xl uppercase hover:bg-green-500 hover:text-black transition-all">
+            <button onClick={() => handleWin(player1?.funnyName || 'Player 1')} className="flex flex-col items-center justify-center flex-1 py-8 border-4 border-green-500 text-green-500 font-black text-3xl uppercase hover:bg-green-500 hover:text-black transition-all">
+              {player1 && <PlayerAvatar seed={player1.funnyName} size={48} className="mb-4" />}
               {player1?.funnyName} Won
             </button>
-            <button onClick={() => handleWin(player2?.funnyName || 'Player 2')} className="flex-1 py-8 border-4 border-green-500 text-green-500 font-black text-3xl uppercase hover:bg-green-500 hover:text-black transition-all">
+            <button onClick={() => handleWin(player2?.funnyName || 'Player 2')} className="flex flex-col items-center justify-center flex-1 py-8 border-4 border-green-500 text-green-500 font-black text-3xl uppercase hover:bg-green-500 hover:text-black transition-all">
+              {player2 && <PlayerAvatar seed={player2.funnyName} size={48} className="mb-4" />}
               {player2?.funnyName} Won
             </button>
           </div>
