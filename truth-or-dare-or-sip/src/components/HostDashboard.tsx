@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import type { GameSettings } from '../types';
 
-export const HostDashboard: React.FC = () => {
+export const HostDashboard: React.FC<{ onOpenDuelHub?: () => void }> = ({ onOpenDuelHub }) => {
   const { settings, updateSettings, setPhase } = useGameStore();
 
   const [localSettings, setLocalSettings] = useState<GameSettings>(settings);
@@ -109,6 +109,20 @@ export const HostDashboard: React.FC = () => {
         >
           Proceed to Stealth Interview
         </motion.button>
+
+        {onOpenDuelHub && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onOpenDuelHub}
+            className="w-full py-4 px-6 mt-4 bg-purple-900 hover:bg-purple-700 text-white border-4 border-purple-500 font-black rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-colors uppercase tracking-widest text-lg"
+          >
+            Test Duel Mini-Games
+          </motion.button>
+        )}
       </div>
     </div>
   );
