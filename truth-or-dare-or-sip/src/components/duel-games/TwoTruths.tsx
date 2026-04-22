@@ -8,16 +8,25 @@ export const TwoTruths: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [storytellerId, setStorytellerId] = useState<string>(players[0].id);
   const [guesserId, setGuesserId] = useState<string>(players[1].id);
 
-  const [phase, setPhase] = useState<'SETUP' | 'STORY' | 'GUESS' | 'REVEAL'>('SETUP');
+  const [phase, setPhase] = useState<'SETUP' | 'STORY' | 'GUESS' | 'JUDGE'>('SETUP');
   const [timer, setTimer] = useState<number>(15);
 
   const [round, setRound] = useState(1);
-  const [guesserWins, setGuesserWins] = useState(0);
-  const [storytellerWins, setStorytellerWins] = useState(0);
+
+  // Track scores
+  const [scores, setScores] = useState<Record<string, number>>({});
+  const updateScore = (name: string, points: number) => {
+    setScores(prev => ({ ...prev, [name]: (prev[name] || 0) + points }));
+  };
+
+  const resetMatch = () => {
+    setScores({});
+    setRound(1);
+    setPhase('SETUP');
+  };
 
   // Match state
   const [selectedStatement, setSelectedStatement] = useState<number | null>(null);
-  const [lieStatement, setLieStatement] = useState<number>(2); // Hardcoded for testing, real game would ask storyteller to pick
 
   const storyteller = players.find(p => p.id === storytellerId);
   const guesser = players.find(p => p.id === guesserId);
@@ -43,8 +52,6 @@ export const TwoTruths: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const startRound = () => {
     setPhase('STORY');
     setSelectedStatement(null);
-    // Randomize lie for testing
-    setLieStatement(Math.floor(Math.random() * 3) + 1);
   };
 
   const startGuessing = () => {
@@ -55,40 +62,24 @@ export const TwoTruths: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
   const handleGuess = (statementNum: number) => {
     setSelectedStatement(statementNum);
-    setPhase('REVEAL');
+    setPhase('JUDGE');
     soundEngine.playEndBuzz(); // Drama sound
   };
 
   const handleGuessTimeout = () => {
     setSelectedStatement(0); // 0 means timeout
-    setPhase('REVEAL');
+    setPhase('JUDGE');
   };
 
-  const finishRound = () => {
-    let gWins = guesserWins;
-    let sWins = storytellerWins;
-
-    if (selectedStatement === lieStatement) {
-      gWins++;
-      setGuesserWins(gWins);
-      alert(`${guesser?.funnyName} Guessed Correctly! Score +1.`);
-    } else {
-      sWins++;
-      setStorytellerWins(sWins);
-      alert(`${storyteller?.funnyName} Fooled Them! Score +1.`);
-    }
+  const finishRound = (winnerName: string) => {
+    alert(`${winnerName} wins the round! Score +1.`);
+    updateScore(winnerName, 1);
 
     if (round === 2) {
-      if (gWins === 1 && sWins === 1) {
-        alert(`Both won a round! The ENTIRE AUDIENCE gets a -1 Penalty!`);
-      } else {
-         const winner = gWins > sWins ? guesser?.funnyName : storyteller?.funnyName;
-         alert(`${winner} wins the match!`);
-      }
+      // End of match
+      alert(`Match complete!`);
       setPhase('SETUP');
       setRound(1);
-      setGuesserWins(0);
-      setStorytellerWins(0);
     } else {
       setRound(2);
       // Swap roles
@@ -104,6 +95,15 @@ export const TwoTruths: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       <div className="min-h-screen bg-gray-900 text-white p-8 font-sans flex flex-col items-center justify-center">
         <h1 className="text-5xl font-bold mb-8 text-yellow-500 uppercase tracking-widest text-center">2 Truths & A Lie</h1>
         <div className="w-full max-w-2xl bg-gray-800 p-6 rounded-xl space-y-6">
+          <div className="flex justify-between bg-black p-4 mb-4 rounded border-2 border-gray-700">
+            {Object.entries(scores).map(([name, score]) => (
+              <div key={name} className="text-center font-bold">
+                <div className="text-sm text-gray-400 uppercase">{name}</div>
+                <div className={score < 0 ? 'text-red-500' : 'text-green-500'}>{score}</div>
+              </div>
+            ))}
+            {Object.keys(scores).length === 0 && <div className="text-gray-500 italic w-full text-center">No scores yet...</div>}
+          </div>
           <div>
             <label className="block text-xl mb-2 font-bold">Select Storyteller</label>
             <select className="w-full p-4 bg-black text-white text-xl font-bold border-2 border-yellow-500" value={storytellerId} onChange={(e) => setStorytellerId(e.target.value)}>
@@ -117,16 +117,21 @@ export const TwoTruths: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             </select>
           </div>
           <button onClick={startRound} className="w-full py-6 mt-8 bg-yellow-600 hover:bg-yellow-500 text-3xl font-black uppercase tracking-widest transition-colors text-black">Begin</button>
-          <button onClick={onExit} className="w-full py-4 mt-4 bg-gray-700 hover:bg-gray-600 font-bold uppercase transition-colors">Cancel</button>
+
+          <div className="flex gap-4 mt-4">
+            <button onClick={resetMatch} className="flex-1 py-4 bg-red-900 hover:bg-red-700 text-white font-bold uppercase transition-colors">Reset Game</button>
+            <button onClick={onExit} className="flex-1 py-4 bg-gray-700 hover:bg-gray-600 font-bold uppercase transition-colors">Cancel</button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans">
-      <div className="p-6 border-b-4 border-gray-800 flex justify-between items-center text-gray-500 uppercase font-bold tracking-widest">
-         <button onClick={() => setPhase('SETUP')} className="hover:text-white">Abort</button>
+    <div className="min-h-screen bg-black text-white flex flex-col font-sans relative">
+      <button onClick={resetMatch} className="absolute top-4 left-4 px-4 py-2 border-2 border-gray-600 text-gray-400 font-bold hover:text-white z-50 bg-black">Quit</button>
+
+      <div className="p-6 border-b-4 border-gray-800 flex justify-between items-center text-gray-500 uppercase font-bold tracking-widest pt-16">
          <div>Round {round} of 2</div>
          <div>{storyteller?.funnyName}'s Turn</div>
       </div>
@@ -171,21 +176,24 @@ export const TwoTruths: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         </div>
       )}
 
-      {phase === 'REVEAL' && (
+      {phase === 'JUDGE' && (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center relative">
-          <h2 className="text-6xl font-black uppercase mb-16 tracking-widest">The Reveal</h2>
+          <h2 className="text-6xl font-black uppercase mb-16 tracking-widest text-yellow-500">The Reveal</h2>
 
           <div className="text-3xl font-bold text-gray-400 mb-8 uppercase">
-            Guesser Selected: <span className="text-white text-5xl ml-4">{selectedStatement === 0 ? 'TIMEOUT' : `#${selectedStatement}`}</span>
+            {guesser?.funnyName} Selected: <span className="text-white text-5xl ml-4 block mt-4">{selectedStatement === 0 ? 'TIMEOUT' : `Statement #${selectedStatement}`}</span>
           </div>
 
-          <div className="text-3xl font-bold text-gray-400 mb-16 uppercase">
-            The Lie Was: <span className="text-red-500 text-6xl ml-4 block mt-4">Statement #{lieStatement}</span>
-          </div>
+          <div className="text-4xl font-black text-white mb-12 uppercase">Who won?</div>
 
-          <button onClick={finishRound} className="w-full max-w-xl py-8 bg-green-600 hover:bg-green-500 text-4xl font-black text-white uppercase tracking-widest transition-colors">
-            {selectedStatement === lieStatement ? 'Guesser Wins!' : 'Storyteller Wins!'}
-          </button>
+          <div className="flex w-full max-w-xl gap-4">
+            <button onClick={() => finishRound(storyteller?.funnyName || 'Storyteller')} className="flex-1 py-8 bg-green-600 hover:bg-green-500 text-3xl font-black text-white uppercase tracking-widest transition-colors">
+              {storyteller?.funnyName} Won
+            </button>
+            <button onClick={() => finishRound(guesser?.funnyName || 'Guesser')} className="flex-1 py-8 bg-blue-600 hover:bg-blue-500 text-3xl font-black text-white uppercase tracking-widest transition-colors">
+              {guesser?.funnyName} Won
+            </button>
+          </div>
         </div>
       )}
     </div>
