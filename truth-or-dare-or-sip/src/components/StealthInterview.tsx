@@ -12,7 +12,7 @@ export const StealthInterview: React.FC = () => {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [phase, setLocalPhase] = useState<'PASS_IPAD' | 'QUIZ' | 'REVEAL'>('PASS_IPAD');
   const [revealedPlayer, setRevealedPlayer] = useState<{name: string, archetype: string} | null>(null);
-  const [timeLeft, setTimeLeft] = useState(45);
+  const [timeLeft, setTimeLeft] = useState(settings.interviewTimerSeconds || 30);
 
   // Quiz specific state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -46,7 +46,11 @@ export const StealthInterview: React.FC = () => {
   }, [phase, timeLeft]);
 
   const handleStartQuiz = () => {
-    setRandomizedQuestions([...CPM_QUESTIONS].sort(() => Math.random() - 0.5));
+    // Keep demographic questions (id starts with 'q-') at the beginning, randomize the rest, pick total 8 + 2 demog
+    const demographics = CPM_QUESTIONS.filter(q => q.id.startsWith('q-'));
+    const others = CPM_QUESTIONS.filter(q => !q.id.startsWith('q-')).sort(() => Math.random() - 0.5).slice(0, 6); // 2 demog + 6 personality = 8 questions
+
+    setRandomizedQuestions([...demographics, ...others]);
     setCurrentQuestionIndex(0);
     const initialScores: Record<string, number> = {};
     CPM_ARCHETYPES.forEach(a => { initialScores[a.id] = 0; });
@@ -54,7 +58,7 @@ export const StealthInterview: React.FC = () => {
     setReactionTimes([]);
     setAnswersCount(0);
     setLocalPhase('QUIZ');
-    setTimeLeft(45);
+    setTimeLeft(settings.interviewTimerSeconds || 30);
     questionStartTime.current = Date.now();
   };
 

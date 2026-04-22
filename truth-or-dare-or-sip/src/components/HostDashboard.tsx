@@ -46,6 +46,14 @@ export const HostDashboard: React.FC<{ onOpenDuelHub?: () => void }> = ({ onOpen
           <h2 className="text-xl font-semibold text-red-400 border-b border-gray-700 pb-2">Initial Settings</h2>
 
           <div className="flex flex-col">
+            <label className="text-gray-300 text-sm mb-1">Device Layout (for iPad/Phone)</label>
+            <select name="deviceLayout" value={localSettings.deviceLayout} onChange={handleChange} className="bg-gray-700 p-2 rounded text-white">
+              <option value="portrait">Portrait</option>
+              <option value="wide">Wide</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col">
             <label className="text-gray-300 text-sm mb-1">Number of Players</label>
             <input type="number" name="numPlayers" min="2" max="20" value={localSettings.numPlayers} onChange={handleChange} className="bg-gray-700 p-2 rounded text-white" />
           </div>
@@ -53,6 +61,11 @@ export const HostDashboard: React.FC<{ onOpenDuelHub?: () => void }> = ({ onOpen
           <div className="flex flex-col">
             <label className="text-gray-300 text-sm mb-1">Rounds per Player</label>
             <input type="number" name="roundsPerPlayer" min="1" max="50" value={localSettings.roundsPerPlayer} onChange={handleChange} className="bg-gray-700 p-2 rounded text-white" />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-gray-300 text-sm mb-1">Pre-game Quiz Timer (seconds)</label>
+            <input type="number" name="interviewTimerSeconds" min="10" max="120" value={localSettings.interviewTimerSeconds} onChange={handleChange} className="bg-gray-700 p-2 rounded text-white" />
           </div>
 
           <div className="flex flex-col">

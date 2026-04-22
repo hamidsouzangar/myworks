@@ -12,6 +12,8 @@ export interface Player {
 }
 
 export interface GameSettings {
+  deviceLayout: 'portrait' | 'wide';
+  interviewTimerSeconds: number;
   numPlayers: number;
   roundsPerPlayer: number;
   targetGameTimeMin: number;

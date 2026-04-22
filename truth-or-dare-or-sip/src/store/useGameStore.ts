@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware';
 import type { GameState, Task, GameSettings } from '../types';
 
 const defaultSettings: GameSettings = {
+  deviceLayout: 'portrait',
+  interviewTimerSeconds: 30,
   numPlayers: 3,
   roundsPerPlayer: 5,
   targetGameTimeMin: 30,

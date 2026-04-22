@@ -78,6 +78,26 @@ export const CPM_ARCHETYPES = [
 
 export const CPM_QUESTIONS = [
   {
+    id: "q-gender",
+    title: "The Identity",
+    text: "Your gender:",
+    options: [
+      { text: "Male", primary: [], secondary: [] },
+      { text: "Female", primary: [], secondary: [] },
+      { text: "Other / Prefer not to say", primary: [], secondary: [] }
+    ]
+  },
+  {
+    id: "q-age",
+    title: "The Generation",
+    text: "Your age group:",
+    options: [
+      { text: "Kid", primary: [], secondary: [] },
+      { text: "Teenager", primary: [], secondary: [] },
+      { text: "Adult", primary: [], secondary: [] }
+    ]
+  },
+  {
     id: "q1",
     title: "The Time Machine",
     text: "One-way time machine. Where to?",
