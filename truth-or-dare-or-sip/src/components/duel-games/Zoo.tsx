@@ -23,7 +23,7 @@ export const Zoo: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       count--;
       if (count > 0) {
         setCountdown(count);
-        soundEngine.playCountdownBeep();
+        soundEngine.playCountdown();
       } else if (count === 0) {
         setCountdown(0);
         soundEngine.playStartBuzz();
@@ -31,7 +31,7 @@ export const Zoo: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         clearInterval(interval);
       }
     }, 1000);
-    soundEngine.playCountdownBeep(); // initial beep for 3
+    soundEngine.playCountdown(); // initial beep for 3
   };
 
   const handleWin = (winnerName: string) => {
@@ -40,7 +40,7 @@ export const Zoo: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   };
 
   const handleFalseStart = (playerName: string) => {
-    soundEngine.playHarshBeep();
+    soundEngine.playTimeOut('digital');
     alert(`FALSE START! ${playerName} gets a -1 penalty!`);
     setPhase('READY');
   };

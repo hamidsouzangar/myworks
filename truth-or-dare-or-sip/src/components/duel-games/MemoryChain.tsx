@@ -22,11 +22,11 @@ export const MemoryChain: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
-            soundEngine.playHarshBeep();
+            soundEngine.playTimeOut('digital');
             handleLoss(activePlayers[currentPlayerIndex]);
             return 0;
           }
-          if (prev <= 3) soundEngine.playCountdownBeep();
+          if (prev <= 3) soundEngine.playCountdown();
           return prev - 1;
         });
       }, 1000);
@@ -54,7 +54,7 @@ export const MemoryChain: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   };
 
   const nextTurn = () => {
-    soundEngine.playCountdownBeep();
+    soundEngine.playCountdown();
     const nextTurnNum = turn + 1;
     setTurn(nextTurnNum);
 

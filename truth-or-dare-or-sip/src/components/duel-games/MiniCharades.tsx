@@ -32,11 +32,11 @@ export const MiniCharades: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
-            soundEngine.playEndBuzz();
+            soundEngine.playTimeOut('buzzer');
             handleTimeOut();
             return 0;
           }
-          if (prev <= 5) soundEngine.playCountdownBeep();
+          if (prev <= 5) soundEngine.playCountdown();
           return prev - 1;
         });
       }, 1000);
@@ -69,12 +69,12 @@ export const MiniCharades: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     else setTeamBScore(prev => prev + 1);
 
     // In actual game, score is based on time or just count. We'll use count for simplicity.
-    soundEngine.playCountdownBeep(); // success sound
+    soundEngine.playCountdown(); // success sound
     nextWord();
   };
 
   const handleSkip = () => {
-    soundEngine.playHarshBeep();
+    soundEngine.playTimeOut('digital');
     setTimer(prev => Math.max(0, prev - 5)); // 5s penalty
     nextWord();
   };

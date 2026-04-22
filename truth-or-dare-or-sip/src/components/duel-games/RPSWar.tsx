@@ -36,16 +36,16 @@ export const RPSWar: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const runCountdown = () => {
     let step = 1;
     setCountdownText('1...');
-    soundEngine.playCountdownBeep();
+    soundEngine.playCountdown();
 
     const interval = setInterval(() => {
       step++;
       if (step === 2) {
         setCountdownText('2...');
-        soundEngine.playCountdownBeep();
+        soundEngine.playCountdown();
       } else if (step === 3) {
         setCountdownText('3!');
-        soundEngine.playCountdownBeep();
+        soundEngine.playCountdown();
       } else if (step === 4) {
         setCountdownText('SHOOT!');
         soundEngine.playStartBuzz();

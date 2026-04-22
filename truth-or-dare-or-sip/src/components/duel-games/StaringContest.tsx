@@ -38,10 +38,10 @@ export const StaringContest: React.FC<{ onExit: () => void }> = ({ onExit }) => 
         setTimer((prev) => {
           if (prev <= 1) {
             setPhase('JUDGE');
-            soundEngine.playEndBuzz();
+            soundEngine.playTimeOut('buzzer');
             return 0;
           }
-          if (prev <= 4) soundEngine.playCountdownBeep();
+          if (prev <= 4) soundEngine.playCountdown();
           return prev - 1;
         });
       }, 1000);
@@ -54,7 +54,7 @@ export const StaringContest: React.FC<{ onExit: () => void }> = ({ onExit }) => 
     let count = 3;
     const interval = setInterval(() => {
       if (count > 0) {
-        soundEngine.playCountdownBeep();
+        soundEngine.playCountdown();
         count--;
       } else {
         clearInterval(interval);
@@ -80,7 +80,7 @@ export const StaringContest: React.FC<{ onExit: () => void }> = ({ onExit }) => 
   };
 
   const handleIllegalTouch = (playerName: string) => {
-    soundEngine.playHarshBeep();
+    soundEngine.playTimeOut('digital');
     alert(`ILLEGAL TOUCH! ${playerName} gets an instant -1 penalty!`);
     updateScore(playerName, -1);
   };
@@ -167,7 +167,7 @@ export const StaringContest: React.FC<{ onExit: () => void }> = ({ onExit }) => 
                onClick={() => {
                  setPhase('JUDGE');
                  setTimer(0);
-                 soundEngine.playEndBuzz();
+                 soundEngine.playTimeOut('buzzer');
                }}
                className="w-full py-6 mt-4 bg-yellow-600 hover:bg-yellow-500 text-black font-black text-2xl uppercase"
             >

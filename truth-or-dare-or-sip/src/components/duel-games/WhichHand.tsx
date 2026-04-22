@@ -29,7 +29,7 @@ export const WhichHand: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
-            soundEngine.playEndBuzz();
+            soundEngine.playTimeOut('buzzer');
             if (phase === 'HIDE') {
               setPhase('GUESS');
               return 15;
@@ -38,7 +38,7 @@ export const WhichHand: React.FC<{ onExit: () => void }> = ({ onExit }) => {
               return 0;
             }
           }
-          if (prev <= 3) soundEngine.playCountdownBeep();
+          if (prev <= 3) soundEngine.playCountdown();
           return prev - 1;
         });
       }, 1000);

@@ -29,6 +29,7 @@ export const GameLoop: React.FC = () => {
       setLocalPhase('COUNTDOWN');
       setIsFirstRound(false);
     } else {
+      soundEngine.playBottleSpin(3000);
       setLocalPhase('SPINNING');
     }
   };
@@ -36,16 +37,17 @@ export const GameLoop: React.FC = () => {
   // Audio context mockup for running sound
   useEffect(() => {
     if (localPhase === 'COUNTDOWN') {
-      soundEngine.playCountdownBeep();
+      soundEngine.playCountdown();
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
             soundEngine.playStartBuzz();
+            soundEngine.playBottleSpin(3000);
             setLocalPhase('SPINNING');
             return 0;
           }
-          soundEngine.playCountdownBeep();
+          soundEngine.playCountdown();
           return prev - 1;
         });
       }, 1000);
@@ -63,6 +65,7 @@ export const GameLoop: React.FC = () => {
     const RandomBottle = BOTTLES[Math.floor(Math.random() * BOTTLES.length)];
 
     setTimeout(() => {
+      soundEngine.playBottleStop();
       setBottleComponent(() => RandomBottle);
       useGameStore.setState({
         currentTurn: { ...currentTurn, activePlayerId: targetPlayer.id }
@@ -123,6 +126,7 @@ export const GameLoop: React.FC = () => {
     if (!activePlayerId) return;
 
     if (action === 'VETO' && !showVetoWarning) {
+      soundEngine.playTimeOut('digital');
       setShowVetoWarning(true);
       return;
     }
@@ -131,10 +135,13 @@ export const GameLoop: React.FC = () => {
 
     // Resolution Selection logic
     if (action === 'SIP') {
+      soundEngine.playTimeOut('buzzer');
       sipPenalty = unholyUnion ? 2 : 1;
     } else if (action === 'VETO') {
+      soundEngine.playTimeOut('digital');
       sipPenalty = players.length; // Global sip penalty for all players
     } else if (action === 'DONE') {
+      soundEngine.playFinish();
       // no sip penalty
     }
 

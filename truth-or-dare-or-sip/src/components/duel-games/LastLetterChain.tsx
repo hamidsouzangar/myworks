@@ -22,11 +22,11 @@ export const LastLetterChain: React.FC<{ onExit: () => void }> = ({ onExit }) =>
       interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
-            soundEngine.playHarshBeep();
+            soundEngine.playTimeOut('digital');
             handleLoss(activePlayers[currentPlayerIndex], 'Time Out');
             return 0;
           }
-          if (prev <= 2) soundEngine.playCountdownBeep();
+          if (prev <= 2) soundEngine.playCountdown();
           return prev - 1;
         });
       }, 1000);
@@ -49,7 +49,7 @@ export const LastLetterChain: React.FC<{ onExit: () => void }> = ({ onExit }) =>
     const interval = setInterval(() => {
       const randomWord = startingWords[Math.floor(Math.random() * startingWords.length)];
       setCurrentWord(randomWord);
-      soundEngine.playCountdownBeep();
+      soundEngine.playCountdown();
       spins++;
 
       if (spins >= maxSpins) {
@@ -63,7 +63,7 @@ export const LastLetterChain: React.FC<{ onExit: () => void }> = ({ onExit }) =>
   };
 
   const nextTurn = () => {
-    soundEngine.playCountdownBeep();
+    soundEngine.playCountdown();
 
     // In a real app we'd type the word, but for offline manual ref we just prompt or assume success and randomize a new letter to keep the UI flowing for testing
     // To make it functional for testing without typing, we just pick a random letter to represent the 'end' of their verbal word.

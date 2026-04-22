@@ -19,7 +19,7 @@ export const RoastBattle: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
-            soundEngine.playEndBuzz();
+            soundEngine.playTimeOut('buzzer');
             if (phase === 'ROUND_1') {
               setPhase('ROUND_2');
             } else {
@@ -27,7 +27,7 @@ export const RoastBattle: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             }
             return 30; // reset for next round/phase
           }
-          if (prev <= 5) soundEngine.playCountdownBeep();
+          if (prev <= 5) soundEngine.playCountdown();
           return prev - 1;
         });
       }, 1000);
@@ -46,7 +46,7 @@ export const RoastBattle: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   };
 
   const handleVeto = (attackerName: string) => {
-    soundEngine.playHarshBeep();
+    soundEngine.playTimeOut('digital');
     alert(`VETO! ${attackerName} went too far and loses the match! Penalty -1.`);
     setPhase('SETUP');
   };

@@ -6,10 +6,12 @@ import { HostDashboard } from './components/HostDashboard';
 import { StealthInterview } from './components/StealthInterview';
 import { GameLoop } from './components/GameLoop';
 import { DuelHub } from './components/duel-games/DuelHub';
+import { useUiPop } from './hooks/useUiPop';
 
 function App() {
   const { phase } = useGameStore();
   const [showDuelHub, setShowDuelHub] = useState(false);
+  useUiPop();
 
   if (showDuelHub) {
     return <DuelHub onExit={() => setShowDuelHub(false)} />;

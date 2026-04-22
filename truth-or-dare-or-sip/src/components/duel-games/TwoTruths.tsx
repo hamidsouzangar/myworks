@@ -37,11 +37,11 @@ export const TwoTruths: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
-            soundEngine.playEndBuzz();
+            soundEngine.playTimeOut('buzzer');
             handleGuessTimeout();
             return 0;
           }
-          if (prev <= 3) soundEngine.playCountdownBeep();
+          if (prev <= 3) soundEngine.playCountdown();
           return prev - 1;
         });
       }, 1000);
@@ -63,7 +63,7 @@ export const TwoTruths: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const handleGuess = (statementNum: number) => {
     setSelectedStatement(statementNum);
     setPhase('JUDGE');
-    soundEngine.playEndBuzz(); // Drama sound
+    soundEngine.playTimeOut('buzzer'); // Drama sound
   };
 
   const handleGuessTimeout = () => {
