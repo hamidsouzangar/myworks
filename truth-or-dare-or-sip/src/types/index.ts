@@ -4,15 +4,21 @@ export interface Player {
   id: string;
   realName?: string;
   funnyName: string;
+  archetype: string;
+  gender: string;
+  ageGroup: string;
+  hasPartnerInGame: boolean;
   tags: string[]; // e.g., 'p:instigator'
   sipsTaken: number;
   truthsDone: number;
   daresDone: number;
   strictSips: number;
+  activeModifiers: string[];
 }
 
 export interface GameSettings {
   deviceLayout: 'portrait' | 'wide';
+  globalAgeGroup: 'Kid' | 'Teenager' | 'Adult';
   interviewTimerSeconds: number;
   numPlayers: number;
   roundsPerPlayer: number;
@@ -51,11 +57,26 @@ export interface Task {
 }
 
 export interface Modifiers {
-  truthSerum: boolean;
-  dareDevil: boolean;
-  blindLuck: boolean;
+  chooseNextVictim: boolean;
   blockSkip: boolean;
+  truthSerum: boolean;
+  forceSip: boolean;
+  dareDevil: boolean;
+  kingQueen: boolean;
   unholyUnion: boolean;
+  kissRoulette: boolean;
+  muteButton: number;
+  selectNextTruthSpice: boolean;
+  roomRoast: boolean;
+  vowOfSilence: number;
+  tRex: number;
+  blindLuck: boolean;
+}
+
+export interface EngineLog {
+  id: string;
+  timestamp: number;
+  message: string;
 }
 
 export interface GameState {
@@ -84,6 +105,8 @@ export interface GameState {
     isChaosDuel: boolean;
   };
 
+  debugLogs: EngineLog[];
+
   // Actions
   setPhase: (phase: Phase) => void;
   updateSettings: (settings: Partial<GameSettings>) => void;
@@ -92,4 +115,5 @@ export interface GameState {
   initGame: (tasks: Task[]) => void;
   decrementSips: (amount: number) => void;
   resetGame: () => void;
+  addDebugLog: (message: string) => void;
 }

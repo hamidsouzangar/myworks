@@ -19,10 +19,10 @@ export const DuelHub: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
   // If we launch Duel Hub before a game has started, we mock some players so we can test.
   const players = storePlayers.length >= 2 ? storePlayers : [
-    { id: 'mock1', funnyName: 'The Goblin', tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0 },
-    { id: 'mock2', funnyName: 'Professor Chaos', tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0 },
-    { id: 'mock3', funnyName: 'Captain Oblivious', tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0 },
-    { id: 'mock4', funnyName: 'Sneaky Snake', tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0 }
+    { id: 'mock1', funnyName: 'The Goblin', archetype: 'Instigator', gender: 'Male', ageGroup: 'Adult', hasPartnerInGame: false, tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0, activeModifiers: [] },
+    { id: 'mock2', funnyName: 'Professor Chaos', archetype: 'Nosy', gender: 'Female', ageGroup: 'Adult', hasPartnerInGame: true, tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0, activeModifiers: [] },
+    { id: 'mock3', funnyName: 'Captain Oblivious', archetype: 'Gentle', gender: 'Other', ageGroup: 'Teenager', hasPartnerInGame: false, tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0, activeModifiers: [] },
+    { id: 'mock4', funnyName: 'Sneaky Snake', archetype: 'Manipulator', gender: 'Female', ageGroup: 'Kid', hasPartnerInGame: true, tags: [], sipsTaken: 0, truthsDone: 0, daresDone: 0, strictSips: 0, activeModifiers: [] }
   ];
 
   if (currentScreen === 'SOUND_TESTER') {

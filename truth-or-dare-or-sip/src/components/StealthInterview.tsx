@@ -23,6 +23,10 @@ export const StealthInterview: React.FC = () => {
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [answersCount, setAnswersCount] = useState(0);
 
+  // Demographic Captures
+  const [capturedGender, setCapturedGender] = useState('Unknown');
+  const [capturedPartner, setCapturedPartner] = useState(false);
+
   // Ref for exact timing
   const questionStartTime = useRef<number>(Date.now());
 
@@ -46,9 +50,9 @@ export const StealthInterview: React.FC = () => {
   }, [phase, timeLeft]);
 
   const handleStartQuiz = () => {
-    // Keep demographic questions (id starts with 'q-') at the beginning, randomize the rest, pick total 8 + 2 demog
+    // Keep demographic questions (id starts with 'q-') at the beginning, randomize the rest, pick total 8
     const demographics = CPM_QUESTIONS.filter(q => q.id.startsWith('q-'));
-    const others = CPM_QUESTIONS.filter(q => !q.id.startsWith('q-')).sort(() => Math.random() - 0.5).slice(0, 6); // 2 demog + 6 personality = 8 questions
+    const others = CPM_QUESTIONS.filter(q => !q.id.startsWith('q-')).sort(() => Math.random() - 0.5).slice(0, 6); // 2 demog + 6 personality = 8 questions total
 
     setRandomizedQuestions([...demographics, ...others]);
     setCurrentQuestionIndex(0);
@@ -62,7 +66,12 @@ export const StealthInterview: React.FC = () => {
     questionStartTime.current = Date.now();
   };
 
-  const handleAnswer = (primary: string[], secondary: string[]) => {
+  const handleAnswer = (primary: string[], secondary: string[], optionText: string) => {
+    // Check for demographic questions and save the state
+    const qId = randomizedQuestions[currentQuestionIndex].id;
+    if (qId === 'q-gender') setCapturedGender(optionText);
+    if (qId === 'q-partner') setCapturedPartner(optionText === 'Yes');
+
     // 1. Calculate Reaction Time
     const rt = (Date.now() - questionStartTime.current) / 1000;
     setReactionTimes(prev => [...prev, rt]);
@@ -153,11 +162,16 @@ export const StealthInterview: React.FC = () => {
     const newPlayer: Player = {
       id: uuidv4(),
       funnyName,
+      archetype: winningGroup.id,
+      gender: capturedGender,
+      ageGroup: settings.globalAgeGroup, // Use global setting here
+      hasPartnerInGame: capturedPartner,
       tags,
       sipsTaken: 0,
       truthsDone: 0,
       daresDone: 0,
-      strictSips: 0
+      strictSips: 0,
+      activeModifiers: []
     };
 
     addPlayer(newPlayer);
@@ -231,7 +245,7 @@ export const StealthInterview: React.FC = () => {
                     key={i}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => handleAnswer(opt.primary, opt.secondary)}
+                    onClick={() => handleAnswer(opt.primary, opt.secondary, opt.text)}
                     className="w-full py-4 px-6 bg-gray-700 hover:bg-red-600 text-white text-left font-semibold rounded-xl shadow transition-colors"
                   >
                     {opt.text}

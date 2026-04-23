@@ -4,6 +4,7 @@ import type { GameState, Task, GameSettings } from '../types';
 
 const defaultSettings: GameSettings = {
   deviceLayout: 'portrait',
+  globalAgeGroup: 'Adult',
   interviewTimerSeconds: 30,
   numPlayers: 3,
   roundsPerPlayer: 5,
@@ -27,11 +28,20 @@ const defaultSettings: GameSettings = {
 };
 
 const initialModifiers = {
-  truthSerum: false,
-  dareDevil: false,
-  blindLuck: false,
+  chooseNextVictim: false,
   blockSkip: false,
+  truthSerum: false,
+  forceSip: false,
+  dareDevil: false,
+  kingQueen: false,
   unholyUnion: false,
+  kissRoulette: false,
+  muteButton: 0,
+  selectNextTruthSpice: false,
+  roomRoast: false,
+  vowOfSilence: 0,
+  tRex: 0,
+  blindLuck: false,
 };
 
 export const useGameStore = create<GameState>()(
@@ -43,6 +53,7 @@ export const useGameStore = create<GameState>()(
       globalSipsRemaining: 0,
       turnPacingMs: 0,
       sipVolumeMl: 0,
+      debugLogs: [],
       tasks: {
         truthLevel1: [],
         truthLevel2: [],
@@ -80,10 +91,23 @@ export const useGameStore = create<GameState>()(
         const pacing = (state.settings.targetGameTimeMin * 60) / (state.settings.numPlayers * state.settings.roundsPerPlayer) * 1000;
 
         // Phase 1: THE PURGE & THE DEALER
-        // We will implement full boundary filtering later, for now we filter and route
+        const bounds = state.settings.boundaries;
+
         const safeTasks = allTasks.filter(t => {
-          // Simple mock logic for purge based on boundaries
-          if (state.settings.boundaries.noPhoneCalls && t.content.toLowerCase().includes('phone')) return false;
+          const barrier = t.tags.barrier;
+          if (!barrier) return true; // Safe if no barrier tag
+
+          // If the barrier string includes a rule that is flagged as TRUE (banned) in settings, destroy it
+          if (bounds.noPhoneCalls && barrier.includes('noPhoneCalls')) return false;
+          if (bounds.noTexting && barrier.includes('noTexting')) return false;
+          if (bounds.noSocialMedia && barrier.includes('noSocialMedia')) return false;
+          if (bounds.noPrivacyInvasions && barrier.includes('noPrivacyInvasions')) return false;
+          if (bounds.noTouching && barrier.includes('noTouching')) return false;
+          if (bounds.noClothingRemoval && barrier.includes('noClothingRemoval')) return false;
+          if (bounds.noGrossFood && barrier.includes('noGrossFood')) return false;
+          if (bounds.indoorOnly && barrier.includes('indoorOnly')) return false;
+          if (bounds.noExes && barrier.includes('noExes')) return false;
+
           return true;
         });
 
@@ -121,10 +145,15 @@ export const useGameStore = create<GameState>()(
         };
       }),
 
+      addDebugLog: (message: string) => set((state) => ({
+        debugLogs: [{ id: Math.random().toString(36).substring(7), timestamp: Date.now(), message }, ...state.debugLogs].slice(0, 50)
+      })),
+
       resetGame: () => set({
         phase: 'HOST_DASHBOARD',
         players: [],
         globalSipsRemaining: 0,
+        debugLogs: [],
         currentTurn: {
           activePlayerId: null,
           targetPlayerId: null,

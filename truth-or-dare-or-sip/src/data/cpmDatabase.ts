@@ -88,13 +88,12 @@ export const CPM_QUESTIONS = [
     ]
   },
   {
-    id: "q-age",
-    title: "The Generation",
-    text: "Your age group:",
+    id: "q-partner",
+    title: "The Entanglement",
+    text: "Is your partner playing in this group right now?",
     options: [
-      { text: "Kid", primary: [], secondary: [] },
-      { text: "Teenager", primary: [], secondary: [] },
-      { text: "Adult", primary: [], secondary: [] }
+      { text: "Yes", primary: [], secondary: [] },
+      { text: "No", primary: [], secondary: [] }
     ]
   },
   {

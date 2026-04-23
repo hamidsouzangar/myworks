@@ -29,7 +29,6 @@ export const GameLoop: React.FC = () => {
       setLocalPhase('COUNTDOWN');
       setIsFirstRound(false);
     } else {
-      soundEngine.playBottleSpin(3000);
       setLocalPhase('SPINNING');
     }
   };
@@ -43,7 +42,6 @@ export const GameLoop: React.FC = () => {
           if (prev <= 1) {
             clearInterval(timer);
             soundEngine.playStartBuzz();
-            soundEngine.playBottleSpin(3000);
             setLocalPhase('SPINNING');
             return 0;
           }
@@ -56,6 +54,31 @@ export const GameLoop: React.FC = () => {
   }, [localPhase]);
 
   const handleSpin = () => {
+    const { currentTurn, players } = useGameStore.getState();
+    const { chooseNextVictim } = currentTurn.modifiers;
+
+    if (chooseNextVictim) {
+      useGameStore.getState().addDebugLog(`Targeting Check: 'Choose Next Victim' is ACTIVE. Bypassing Spin.`);
+      // In a real implementation we would prompt the previous winner to pick the next player.
+      // For the simulator, we randomly pick and bypass the visual spin.
+      const targetPlayer = players[Math.floor(Math.random() * players.length)];
+      useGameStore.setState(s => ({
+        currentTurn: {
+          ...s.currentTurn,
+          activePlayerId: targetPlayer.id,
+          modifiers: { ...s.currentTurn.modifiers, chooseNextVictim: false }
+        }
+      }));
+      setLocalPhase('DECISION');
+      return;
+    }
+
+    useGameStore.getState().addDebugLog(`Targeting Check: 'Choose Next Victim' is NO. Normal Spin selected.`);
+
+    // Sync the spin duration visually and audibly
+    const SPIN_DURATION_MS = 2000;
+    soundEngine.playBottleSpin(SPIN_DURATION_MS);
+
     // Determine random player (The Goblin)
     const targetPlayer = players[Math.floor(Math.random() * players.length)];
     const randomRotation = 720 + Math.floor(Math.random() * 360); // Spin at least twice
@@ -67,11 +90,11 @@ export const GameLoop: React.FC = () => {
     setTimeout(() => {
       soundEngine.playBottleStop();
       setBottleComponent(() => RandomBottle);
-      useGameStore.setState({
-        currentTurn: { ...currentTurn, activePlayerId: targetPlayer.id }
-      });
+      useGameStore.setState(s => ({
+        currentTurn: { ...s.currentTurn, activePlayerId: targetPlayer.id }
+      }));
       setLocalPhase('DECISION');
-    }, 2000);
+    }, SPIN_DURATION_MS);
   };
 
   const getActivePlayer = () => players.find(p => p.id === currentTurn.activePlayerId);
@@ -88,24 +111,56 @@ export const GameLoop: React.FC = () => {
       return;
     }
 
-    // THE PERSONA MATCH: Check top 10 cards
-    const scanLimit = Math.min(10, deck.length);
     let selectedIndex = 0;
 
-    if (activePlayer && activePlayer.tags.length > 0) {
+    if (activePlayer) {
+      // THE ENGINE PULL (Persona Match)
+      const scanLimit = Math.min(10, deck.length);
+      let bestScore = -1;
+      let matchedReason = 'Random default (Score 50)';
+
       for (let i = 0; i < scanLimit; i++) {
-        const cardPersona = deck[i].tags.persona;
-        if (cardPersona && activePlayer.tags.includes(`p:${cardPersona}`)) {
+        const card = deck[i];
+        let score = 0;
+        let currentReason = '';
+
+        // Match Persona Tag (Score 100 for perfect match, 50 if no match but valid)
+        const targetPersona = card.tags.persona;
+        if (targetPersona && activePlayer.tags.includes(`p:${targetPersona}`)) {
+          score = 100;
+          currentReason = `Matched P:${targetPersona} - Score 100`;
+        } else {
+          score = 50;
+          currentReason = `Fallback (No persona match) - Score 50`;
+        }
+
+        // Match Constraints (If a card strictly requires something we don't have, drop score)
+        const requiresPartner = card.tags.requiresPartner;
+        if ((requiresPartner === 'true' || requiresPartner === true) && !activePlayer.hasPartnerInGame) {
+           score = -100;
+           currentReason = `Rejected: Missing Partner - Score -100`;
+        }
+
+        if (score > bestScore) {
+          bestScore = score;
           selectedIndex = i;
-          break; // Perfect Match! (Score 100)
+          matchedReason = currentReason;
         }
       }
+
+      state.addDebugLog(`Drew [${type.toUpperCase()}]: ${matchedReason} for ${activePlayer.funnyName}`);
     }
 
     const drawnCard = deck[selectedIndex];
 
-    // THE BURN: Remove it
+    // THE BURN: Remove it permanently
     deck.splice(selectedIndex, 1);
+
+    if (type === 'truth') {
+      useGameStore.setState(s => ({ tasks: { ...s.tasks, truthLevel1: deck } }));
+    } else {
+      useGameStore.setState(s => ({ tasks: { ...s.tasks, dareLevel1: deck } }));
+    }
     useGameStore.setState((prev) => ({
       tasks: {
         ...prev.tasks,
@@ -120,10 +175,11 @@ export const GameLoop: React.FC = () => {
   const resolveTurn = (action: 'DONE' | 'SIP' | 'VETO') => {
     const state = useGameStore.getState();
     const { decrementSips, currentTurn, players, updatePlayer } = state;
-    const { unholyUnion } = currentTurn.modifiers;
+    const { unholyUnion, forceSip } = currentTurn.modifiers;
     const activePlayerId = currentTurn.activePlayerId;
+    const activePlayer = players.find(p => p.id === activePlayerId);
 
-    if (!activePlayerId) return;
+    if (!activePlayerId || !activePlayer) return;
 
     if (action === 'VETO' && !showVetoWarning) {
       soundEngine.playTimeOut('digital');
@@ -142,7 +198,8 @@ export const GameLoop: React.FC = () => {
       sipPenalty = players.length; // Global sip penalty for all players
     } else if (action === 'DONE') {
       soundEngine.playFinish();
-      // no sip penalty
+      // Apply Award logic (placeholder for engine parsing of 'Award:' text)
+      // e.g. "Award: Truth Serum" -> add to player's activeModifiers array
     }
 
     if (sipPenalty > 0) {
@@ -154,19 +211,15 @@ export const GameLoop: React.FC = () => {
           updatePlayer(p.id, { sipsTaken: p.sipsTaken + 1, strictSips: p.strictSips + 1 });
         });
       } else {
-        const activePlayer = players.find(p => p.id === activePlayerId);
-        if (activePlayer) {
-           updatePlayer(activePlayerId, {
-             sipsTaken: activePlayer.sipsTaken + sipPenalty,
-             strictSips: activePlayer.strictSips + sipPenalty
-           });
-        }
+        updatePlayer(activePlayerId, {
+          sipsTaken: activePlayer.sipsTaken + sipPenalty,
+          strictSips: activePlayer.strictSips + sipPenalty
+        });
       }
     }
 
     if (action === 'DONE') {
-      const activePlayer = players.find(p => p.id === activePlayerId);
-      if (activePlayer && activeTask) {
+      if (activeTask) {
         if (activeTask.tags.type?.includes('truth')) {
           updatePlayer(activePlayerId, { truthsDone: activePlayer.truthsDone + 1 });
         } else if (activeTask.tags.type?.includes('dare')) {
@@ -176,6 +229,41 @@ export const GameLoop: React.FC = () => {
     }
 
     // Phase: Aftermath
+    if (forceSip) {
+      state.addDebugLog(`Instant Trigger: 'Force Sip' activated against Target.`);
+      // Instantly deduct 1 sip
+      decrementSips(1);
+      // Reset force sip modifier
+      useGameStore.setState(s => ({
+        currentTurn: { ...s.currentTurn, modifiers: { ...s.currentTurn.modifiers, forceSip: false } }
+      }));
+    }
+
+    // Clean up active modifiers on players (Decrement counters like Silence 2 -> 1)
+    const store = useGameStore.getState();
+    const { muteButton, vowOfSilence, tRex } = store.currentTurn.modifiers;
+
+    const newModifiers = { ...store.currentTurn.modifiers };
+    let hasChanges = false;
+
+    if (muteButton > 0) {
+      newModifiers.muteButton -= 1;
+      hasChanges = true;
+    }
+    if (vowOfSilence > 0) {
+      newModifiers.vowOfSilence -= 1;
+      hasChanges = true;
+    }
+    if (tRex > 0) {
+      newModifiers.tRex -= 1;
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+       useGameStore.setState(s => ({
+         currentTurn: { ...s.currentTurn, modifiers: newModifiers }
+       }));
+    }
 
     // Reset Turn to next player spin
     setShowVetoWarning(false);
@@ -328,22 +416,38 @@ export const GameLoop: React.FC = () => {
             )}
 
             <div className="flex gap-4 w-full">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => drawTask('truth')}
-                className="flex-1 py-8 bg-blue-600 hover:bg-blue-500 text-white font-black text-2xl rounded-2xl shadow-xl"
-              >
-                TRUTH
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => drawTask('dare')}
-                className="flex-1 py-8 bg-red-600 hover:bg-red-500 text-white font-black text-2xl rounded-2xl shadow-xl"
-              >
-                DARE
-              </motion.button>
+              {currentTurn.modifiers.blindLuck ? (
+                 <div className="w-full py-8 bg-purple-900 border border-purple-500 rounded-2xl flex flex-col items-center">
+                   <span className="text-purple-300 font-bold mb-4 uppercase tracking-widest text-sm">Blind Luck Active!</span>
+                   <button
+                     onClick={() => drawTask(Math.random() > 0.5 ? 'truth' : 'dare')}
+                     className="px-8 py-4 bg-purple-500 text-white font-black uppercase text-xl rounded-xl hover:bg-purple-400"
+                   >
+                     Previous Winner Chooses
+                   </button>
+                 </div>
+              ) : (
+                <>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => drawTask('truth')}
+                    disabled={currentTurn.modifiers.dareDevil}
+                    className={`flex-1 py-8 text-white font-black text-2xl rounded-2xl shadow-xl transition-colors ${currentTurn.modifiers.dareDevil ? 'bg-gray-800 text-gray-600 cursor-not-allowed opacity-50' : 'bg-blue-600 hover:bg-blue-500'}`}
+                  >
+                    {currentTurn.modifiers.dareDevil ? 'LOCKED' : 'TRUTH'}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => drawTask('dare')}
+                    disabled={currentTurn.modifiers.truthSerum}
+                    className={`flex-1 py-8 text-white font-black text-2xl rounded-2xl shadow-xl transition-colors ${currentTurn.modifiers.truthSerum ? 'bg-gray-800 text-gray-600 cursor-not-allowed opacity-50' : 'bg-red-600 hover:bg-red-500'}`}
+                  >
+                    {currentTurn.modifiers.truthSerum ? 'LOCKED' : 'DARE'}
+                  </motion.button>
+                </>
+              )}
             </div>
           </motion.div>
         )}
@@ -382,7 +486,14 @@ export const GameLoop: React.FC = () => {
             ) : (
               <div className="grid grid-cols-3 gap-4 w-full">
                 <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('DONE')} className="py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg">DONE</motion.button>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('SIP')} className="py-4 bg-orange-500 text-white font-bold rounded-xl shadow-lg">SIP</motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => resolveTurn('SIP')}
+                  disabled={currentTurn.modifiers.blockSkip}
+                  className={`py-4 text-white font-bold rounded-xl shadow-lg transition-colors ${currentTurn.modifiers.blockSkip ? 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50' : 'bg-orange-500'}`}
+                >
+                  {currentTurn.modifiers.blockSkip ? 'BLOCKED' : 'SIP'}
+                </motion.button>
                 <motion.button whileTap={{ scale: 0.95 }} onClick={() => resolveTurn('VETO')} className="py-4 bg-gray-600 text-white font-bold rounded-xl shadow-lg">VETO</motion.button>
               </div>
             )}

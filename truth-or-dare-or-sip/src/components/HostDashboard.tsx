@@ -54,6 +54,15 @@ export const HostDashboard: React.FC<{ onOpenDuelHub?: () => void }> = ({ onOpen
           </div>
 
           <div className="flex flex-col">
+            <label className="text-gray-300 text-sm mb-1">Global Age Group</label>
+            <select name="globalAgeGroup" value={localSettings.globalAgeGroup} onChange={handleChange} className="bg-gray-700 p-2 rounded text-white">
+              <option value="Kid">Kid</option>
+              <option value="Teenager">Teenager</option>
+              <option value="Adult">Adult</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col">
             <label className="text-gray-300 text-sm mb-1">Number of Players</label>
             <input type="number" name="numPlayers" min="2" max="20" value={localSettings.numPlayers} onChange={handleChange} className="bg-gray-700 p-2 rounded text-white" />
           </div>
