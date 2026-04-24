@@ -14,7 +14,7 @@ export const GameLoop: React.FC = () => {
     setPhase
   } = useGameStore();
 
-  const [localPhase, setLocalPhase] = useState<'READY' | 'COUNTDOWN' | 'SPINNING' | 'DECISION' | 'ACTION' | 'RESOLUTION'>('READY');
+  const [localPhase, setLocalPhase] = useState<'READY' | 'COUNTDOWN' | 'SPINNING' | 'DECISION' | 'CHAOS_DUEL' | 'ACTION' | 'AFTERMATH' | 'RESOLUTION'>('READY');
   const [countdown, setCountdown] = useState(5);
   const [spinRotation, setSpinRotation] = useState(0);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -84,17 +84,30 @@ export const GameLoop: React.FC = () => {
     const randomRotation = 720 + Math.floor(Math.random() * 360); // Spin at least twice
     setSpinRotation(randomRotation);
 
+    useGameStore.setState(s => ({
+      currentTurn: { ...s.currentTurn, activePlayerId: targetPlayer.id }
+    }));
+  };
+
+  const handleSpinComplete = () => {
+    soundEngine.playBottleStop();
+
     // Pick random bottle for next spin (shows up after this spin resolves)
     const RandomBottle = BOTTLES[Math.floor(Math.random() * BOTTLES.length)];
+    setBottleComponent(() => RandomBottle);
 
-    setTimeout(() => {
-      soundEngine.playBottleStop();
-      setBottleComponent(() => RandomBottle);
+    // 15% chance for a Chaos Duel
+    const isChaosDuel = Math.random() < 0.15;
+
+    if (isChaosDuel) {
       useGameStore.setState(s => ({
-        currentTurn: { ...s.currentTurn, activePlayerId: targetPlayer.id }
+         currentTurn: { ...s.currentTurn, isChaosDuel: true }
       }));
+      useGameStore.getState().addDebugLog(`Chaos Duel Triggered! (15% Probability Hit)`);
+      setLocalPhase('CHAOS_DUEL');
+    } else {
       setLocalPhase('DECISION');
-    }, SPIN_DURATION_MS);
+    }
   };
 
   const getActivePlayer = () => players.find(p => p.id === currentTurn.activePlayerId);
@@ -226,13 +239,23 @@ export const GameLoop: React.FC = () => {
           updatePlayer(activePlayerId, { daresDone: activePlayer.daresDone + 1 });
         }
       }
+
+      // If task is DONE, we go to AFTERMATH instead of instantly skipping to READY
+      setLocalPhase('AFTERMATH');
+      return;
     }
 
-    // Phase: Aftermath
+    // Phase: Cleanup & Ready (For SIP and VETO)
+    finishTurnCleanup(forceSip);
+  };
+
+  const finishTurnCleanup = (forceSip: boolean) => {
+    const state = useGameStore.getState();
+
     if (forceSip) {
       state.addDebugLog(`Instant Trigger: 'Force Sip' activated against Target.`);
       // Instantly deduct 1 sip
-      decrementSips(1);
+      state.decrementSips(1);
       // Reset force sip modifier
       useGameStore.setState(s => ({
         currentTurn: { ...s.currentTurn, modifiers: { ...s.currentTurn.modifiers, forceSip: false } }
@@ -363,6 +386,7 @@ export const GameLoop: React.FC = () => {
             <motion.div
               animate={{ rotate: spinRotation }}
               transition={{ duration: 2, ease: "circOut" }}
+              onAnimationComplete={handleSpinComplete}
               className="mb-12 flex items-center justify-center origin-center"
             >
                <BottleComponent />
@@ -376,6 +400,37 @@ export const GameLoop: React.FC = () => {
             >
               SPIN
             </motion.button>
+          </motion.div>
+        )}
+
+        {localPhase === 'CHAOS_DUEL' && (
+          <motion.div
+            key="chaos"
+            initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            className="flex flex-col items-center w-full text-center"
+          >
+            <h2 className="text-6xl font-black text-red-500 mb-6 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]">CHAOS DUEL</h2>
+            <h3 className="text-3xl font-bold text-white mb-12 uppercase tracking-widest text-center">
+              The Engine Demands Blood.<br/><span className="text-orange-500">Pick an opponent.</span>
+            </h3>
+
+            <div className="flex gap-4 w-full">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  // Bypass UI testing and manually end chaos turn for now
+                  useGameStore.setState(s => ({ currentTurn: { ...s.currentTurn, isChaosDuel: false } }));
+                  setLocalPhase('READY');
+                  setCountdown(5);
+                }}
+                className="flex-1 py-8 bg-red-900 hover:bg-red-700 text-white font-black text-2xl uppercase border-4 border-red-500 rounded-2xl shadow-xl transition-colors"
+              >
+                Go to Duel Hub
+              </motion.button>
+            </div>
+            <p className="mt-4 text-xs text-gray-500 uppercase tracking-widest">(Test logic: Click to end turn and continue normal loop)</p>
           </motion.div>
         )}
 
@@ -449,6 +504,32 @@ export const GameLoop: React.FC = () => {
                 </>
               )}
             </div>
+          </motion.div>
+        )}
+
+        {localPhase === 'AFTERMATH' && (
+          <motion.div
+            key="aftermath"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.2 }}
+            className="flex flex-col items-center justify-center w-full text-center"
+          >
+            <h2 className="text-5xl font-black text-green-400 mb-6 drop-shadow-[0_0_20px_rgba(74,222,128,0.8)] uppercase">Task Complete!</h2>
+
+            <div className="bg-gray-800 p-8 rounded-2xl border-4 border-green-500 w-full mb-12 shadow-xl">
+              <h3 className="text-gray-400 font-bold uppercase tracking-widest text-sm mb-4">You Earned A Reward</h3>
+              {/* For now we just show a random UI reward. The engine parsing is a future step */}
+              <div className="text-3xl font-black text-white">Truth Serum</div>
+              <p className="text-sm text-gray-500 italic mt-2">Added to your profile</p>
+            </div>
+
+            <button
+              onClick={() => finishTurnCleanup(currentTurn.modifiers.forceSip)}
+              className="w-full py-6 bg-white hover:bg-gray-300 text-black font-black text-3xl uppercase rounded-2xl transition-colors"
+            >
+              Continue
+            </button>
           </motion.div>
         )}
 
